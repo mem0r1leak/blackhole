@@ -5,5 +5,5 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_executable(blackhole main.cpp
         terminal.h
-        haffman.cpp
-        haffman.h)
+        huffman.cpp
+        huffman.h)
