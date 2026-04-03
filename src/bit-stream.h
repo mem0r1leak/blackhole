@@ -4,6 +4,7 @@
 #include "io.h"
 
 class BitStream {
+    // Краще збільшити буфер до 8 байт для збільшення продуктивності. Поки як є.
     using Buffer = uint8_t;
     static constexpr uint8_t buf_bitsize = sizeof(Buffer) * 8;
 
@@ -22,9 +23,8 @@ public:
         void writeBit(const bool bit) {
             buf |= static_cast<Buffer>(bit) << (buf_bitsize - bits_written - 1);
             bits_written++;
-            if (bits_written == buf_bitsize) {
-                [[unlikely]]
-                        flush();
+            if (bits_written == buf_bitsize) [[unlikely]] {
+                flush();
             }
         }
 
@@ -47,9 +47,8 @@ public:
 
         // Читає біти починаючи з найстаршого
         bool readBit() {
-            if (bits_read == 0) {
-                [[unlikely]]
-                        reader.readInt(buf);
+            if (bits_read == 0) [[unlikely]] {
+                reader.readInt(buf);
             }
             const auto data = buf >> (buf_bitsize - bits_read - 1) & 1;
             bits_read++;

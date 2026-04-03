@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <optional>
 #include <ostream>
-#include <vector>
+#include <streambuf>
 
 namespace io {
     template<typename T>
@@ -33,6 +33,10 @@ namespace io {
             } else {
                 return stream.sputn(reinterpret_cast<const char *>(&value), sizeof(T));
             }
+        }
+
+        bool writeInt(const uint8_t &value) {
+            return stream.sputc(static_cast<char>(value)) != std::streambuf::traits_type::eof();
         }
 
         template<std::endian E = std::endian::native, typename... Args>
@@ -78,6 +82,17 @@ namespace io {
             if constexpr (E != std::endian::native) {
                 value = std::byteswap(value);
             }
+            return true;
+        }
+
+        bool readInt(uint8_t &value) {
+            const int tmp = stream.sbumpc();
+            // fuck c++
+            // stupid shit
+            if (tmp == std::streambuf::traits_type::eof()) [[unlikely]] {
+                return false;
+            }
+            value = static_cast<uint8_t>(tmp);
             return true;
         }
 
