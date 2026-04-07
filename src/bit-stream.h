@@ -30,7 +30,7 @@ public:
 
         // Примусово пише буфер в Writer. Після чого скидає стан: buf=0, bits_written=0
         void flush() {
-            writer.writeInt(buf);
+            if (!writer.writeInt(buf)) throw std::runtime_error("failed to write to bitstream");
             buf = 0;
             bits_written = 0;
         }
@@ -52,9 +52,8 @@ public:
             }
             const auto data = buf >> (buf_bitsize - bits_read - 1) & 1;
             bits_read++;
-            if (bits_read == buf_bitsize) {
-                [[unlikely]]
-                        bits_read = 0;
+            if (bits_read == buf_bitsize) [[unlikely]] {
+                bits_read = 0;
             }
             return data;
         }

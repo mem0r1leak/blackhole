@@ -5,6 +5,18 @@
 #include <streambuf>
 
 namespace io {
+    struct MemoryBuf : std::streambuf {
+        MemoryBuf(uint8_t* base, const size_t size) {
+            const auto p = reinterpret_cast<char*>(base);
+            setg(p, p, p + size);
+        }
+
+        // Повертає кількість байт що лишились
+        std::streamsize showmanyc() override {
+            return egptr() - gptr();
+        }
+    };
+
     template<typename T>
     struct is_std_array : std::false_type {
     };
