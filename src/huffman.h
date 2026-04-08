@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <functional>
 #include <queue>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -40,14 +42,21 @@ namespace Huffman {
         };
 
         // Max alphabet size is 255.
-        void make_code_map(std::unordered_map<uint32_t, uint8_t[32]> &codes) {
-            auto head = codes[head_index];
-            uint8_t code[32];
-            io::MemoryBuf buf(code, 32);
-            io::Writer writer(buf);
-            BitStream::Writer bitstream(writer);
+        void makeCodeMap(std::unordered_map<uint32_t, std::string> &code_map) {
+            if (codes.empty()) return;
+            auto postorder = [&](auto &self, const Node *nod, const std::string &code, const uint8_t depth) -> void {
+                if (nod->has_symb) {
+                    code_map[nod->symb] = code;
+                    return;
+                }
+                self(self, &this->codes[nod->left], code + '1', depth + 1);
+                self(self, &this->codes[nod->right], code + '0', depth + 1);
+            };
+            postorder(postorder, &this->codes[head_index], "", 0);
+        }
 
-            // TODO: implement
+        void printTree() {
+            printNode(&codes[head_index]);
         }
 
         static Tree buildTree(const std::span<uint32_t> freqs, const uint32_t offset) {
@@ -56,7 +65,7 @@ namespace Huffman {
             size_t codes_i = 0;
             for (uint32_t i = 0; i < freqs.size(); ++i) {
                 if (freqs[i] > 0) {
-                    tree.codes.push_back(Node{1, i+offset, freqs[i], 0, 0});
+                    tree.codes.push_back(Node{1, i + offset, freqs[i], 0, 0});
                     queue.emplace(codes_i++, freqs[i]);
                 }
             }
@@ -75,6 +84,23 @@ namespace Huffman {
         }
 
     private:
+        void printNode(const Node *node, const std::string& prefix = "", const bool is_left = true) {
+            std::cout << prefix;
+            std::cout << (is_left ? "├── " : "└── ");
+
+            if (node->has_symb) {
+                const char c = node->symb >= 32 && node->symb <= 126 ? static_cast<char>(node->symb) : '?';
+                std::cout << "\033[1;32m['" << c << "' (" << node->freq << ")]\033[0m" << std::endl;
+                return;
+            }
+            std::cout << "(" << node->freq << ")" << std::endl;
+
+            const std::string new_prefix = prefix + (is_left ? "│   " : "    ");
+
+            printNode(&codes[node->left], new_prefix, true);
+            printNode(&codes[node->right], new_prefix, false);
+        }
+
         uint32_t head_index;
         std::vector<Node> codes;
     };
