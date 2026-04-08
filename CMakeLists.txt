@@ -25,6 +25,8 @@ enable_testing()
 add_executable(blackhole_tests
         tests/io_tests.cpp
         tests/bitstream_tests.cpp
+        tests/huffman_tests.cpp
+        tests/cannonical_tests.cpp
 )
 
 target_link_libraries(blackhole_tests

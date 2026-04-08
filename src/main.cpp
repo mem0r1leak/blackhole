@@ -1,15 +1,29 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
-
-#include "bit-stream.h"
+#include "huffman.h"
+#include "io.h"
 
 int main() {
-    io::Writer writer(*std::cout.rdbuf());
-    BitStream::Writer stream(writer);
-    stream.writeBit(false);
-    stream.writeBit(true);
-    stream.writeBit(false);
-    stream.writeBit(true);
-    stream.flush();
+    constexpr std::string_view filename = "../assets/testdata";
+
+    uint32_t freqs[255]={};
+    const std::fstream file(filename.data(), std::ios::in | std::ios::binary);
+    io::Reader reader(*file.rdbuf());
+    std::vector<uint8_t> raw;
+    raw.resize(std::filesystem::file_size(filename));
+    reader.readSpan(std::span(raw));
+    uint8_t min=raw.front(), max=raw.front();
+    for (const auto& i : raw) {
+        if (i < min) min = i;
+        if (i > max) max = i;
+        freqs[i]++;
+    }
+    auto tree = Huffman::Tree::buildTree(std::span(freqs).subspan(min), min);
+    auto code_lengths = Huffman::Cannonical::Codes{};
+    Huffman::Cannonical::getLengths(tree, tree.head(), code_lengths);
+    uint32_t codes[255]={};
+    Huffman::Cannonical::getCodes(code_lengths, std::span(codes));
+    tree.print();
     return 0;
 }
