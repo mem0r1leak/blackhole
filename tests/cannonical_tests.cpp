@@ -45,13 +45,13 @@ TEST(HuffmanCannonical, GetCodesSameLength) {
     q.emplace(3, 'b');
     q.emplace(3, 'c');
 
-    std::vector<uint32_t> bitcodes(256, 0);
+    Cannonical::Code bitcodes[255];
     Cannonical::getCodes(q, bitcodes);
 
     // Мають бути послідовні числа: 0, 1, 2
-    EXPECT_EQ(bitcodes['a'], 0);
-    EXPECT_EQ(bitcodes['b'], 1);
-    EXPECT_EQ(bitcodes['c'], 2);
+    EXPECT_EQ(bitcodes['a'].code, 0);
+    EXPECT_EQ(bitcodes['b'].code, 1);
+    EXPECT_EQ(bitcodes['c'].code, 2);
 }
 
 // 9. Канонічні коди: перехід довжини (зсув)
@@ -60,11 +60,11 @@ TEST(HuffmanCannonical, GetCodesShift) {
     q.emplace(1, 'a'); // Має бути 0
     q.emplace(3, 'b'); // (0+1) << (3-1) = 4 (100)
 
-    std::vector<uint32_t> bitcodes(256, 0);
+    Cannonical::Code bitcodes[255];
     Cannonical::getCodes(q, bitcodes);
 
-    EXPECT_EQ(bitcodes['a'], 0);
-    EXPECT_EQ(bitcodes['b'], 4); // 100 в бінарці
+    EXPECT_EQ(bitcodes['a'].code, 0);
+    EXPECT_EQ(bitcodes['b'].code, 4); // 100 в бінарці
 }
 
 TEST(HuffmanCannonical, GetCodesComplex) {
@@ -74,15 +74,15 @@ TEST(HuffmanCannonical, GetCodesComplex) {
     q.emplace(3, 'a');
     q.emplace(3, 'o');
 
-    std::vector<uint32_t> bitcodes(256, 0);
+    Cannonical::Code bitcodes[255];
     Cannonical::getCodes(q, bitcodes);
 
     // e: 0 (1 біт)
     // t: (0+1) << 1 = 2 (10)
     // a: (2+1) << 1 = 6 (110)
     // o: (6+1) = 7 (111)
-    EXPECT_EQ(bitcodes['e'], 0);
-    EXPECT_EQ(bitcodes['t'], 2);
-    EXPECT_EQ(bitcodes['a'], 6);
-    EXPECT_EQ(bitcodes['o'], 7);
+    EXPECT_EQ(bitcodes['e'].code, 0);
+    EXPECT_EQ(bitcodes['t'].code, 2);
+    EXPECT_EQ(bitcodes['a'].code, 6);
+    EXPECT_EQ(bitcodes['o'].code, 7);
 }

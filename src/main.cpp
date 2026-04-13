@@ -1,6 +1,8 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+
+#include "bit-stream.h"
 #include "huffman.h"
 #include "io.h"
 
@@ -22,8 +24,13 @@ int main() {
     auto tree = Huffman::Tree::buildTree(std::span(freqs).subspan(min), min);
     auto code_lengths = Huffman::Cannonical::Codes{};
     Huffman::Cannonical::getLengths(tree, tree.head(), code_lengths);
-    uint32_t codes[255]={};
+    Huffman::Cannonical::Code codes[255]={};
     Huffman::Cannonical::getCodes(code_lengths, std::span(codes));
-    tree.print();
+    auto stdout_writer = io::Writer(*std::cout.rdbuf());
+    BitStream::Writer bitwriter(stdout_writer);
+    for (uint8_t c : raw) {
+        bitwriter.writeBits(codes[c].code, codes[c].len);
+    }
+    bitwriter.endflush();
     return 0;
 }

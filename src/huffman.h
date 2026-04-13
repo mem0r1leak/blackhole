@@ -97,6 +97,11 @@ namespace Huffman {
             std::vector<std::pair<uint32_t, uint32_t> >,
             std::greater<>>;
 
+        struct Code {
+            uint32_t code;
+            uint32_t len;
+        };
+
         static void getLengths(const Tree &tree, const Tree::Node& node, Codes &codes, const uint32_t depth=0) {
             if (node.is_leaf()) {
                 assert(depth < 32); // Check if tree depth (code length) less than 32.
@@ -109,22 +114,23 @@ namespace Huffman {
         }
 
         // DANGER: bitcodes is sparce array and 0 is undefined state for non alphabet symbols and defined for alphabet symbols also (literally bitcode=0).
-        static void getCodes(Codes &codes, std::span<uint32_t> bitcodes) {
+        static void getCodes(Codes &codes, std::span<Code> bitcodes) {
             if (codes.empty()) return;
             auto [last_len, last_symb] = codes.top();
             codes.pop();
 
-            uint32_t code = 0;
+            Code code = {};
             bitcodes[last_symb] = code;
 
             while (!codes.empty()) {
                 auto [cur_len, symb] = codes.top();
                 codes.pop();
-                code++;
+                code.code++;
                 if (cur_len > last_len) {
-                    code <<= cur_len - last_len;
+                    code.code <<= cur_len - last_len;
                     last_len = cur_len;
                 }
+                code.len = cur_len;
                 bitcodes[symb] = code;
             }
         }
